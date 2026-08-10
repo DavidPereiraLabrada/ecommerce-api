@@ -49,4 +49,16 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + id));
         productRepository.delete(product);
     }
+
+    public Product updateStock(Long id, Integer newStock) {
+        // Buscamos el producto o lanzamos error si no existe
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+
+        // Actualizamos solo el stock
+        product.setStock(newStock);
+
+        // Guardamos y devolvemos
+        return productRepository.save(product);
+    }
 }

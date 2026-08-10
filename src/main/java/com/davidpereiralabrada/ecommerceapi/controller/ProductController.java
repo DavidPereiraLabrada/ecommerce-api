@@ -5,9 +5,11 @@ import com.davidpereiralabrada.ecommerceapi.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -57,5 +59,13 @@ public class ProductController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PatchMapping("/{id}/stock")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CAJERO')")
+    public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestBody Map<String, Integer> stockUpdate) {
+        Integer newStock = stockUpdate.get("stock");
+        Product updatedProduct = productService.updateStock(id, newStock);
+        return ResponseEntity.ok(updatedProduct);
     }
 }
