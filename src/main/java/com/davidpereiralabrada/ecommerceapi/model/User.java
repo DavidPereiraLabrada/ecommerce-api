@@ -1,9 +1,9 @@
 package com.davidpereiralabrada.ecommerceapi.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -23,6 +23,7 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String password;
 
@@ -30,50 +31,28 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
-    // --- GETTERS, SETTERS Y MÉTODOS DE USERDETAILS ---
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public void setUsername(String username) { this.username = username; }
-    public void setPassword(String password) { this.password = password; }
-
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
-
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convertimos Enum Role en una autoridad reconocida por Spring
-        return List.of(new SimpleGrantedAuthority(role.name()));
-    }
-
-    @Override
-    public String getPassword() {
-        return password; // Devuelve la contraseña cifrada
-    }
-
-    @Override
-    public String getUsername() {
-        return username; // Devuelve el nombre de usuario
+    public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return UserDetails.super.isAccountNonExpired();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return UserDetails.super.isAccountNonLocked();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return UserDetails.super.isCredentialsNonExpired();
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return UserDetails.super.isEnabled();
     }
 }

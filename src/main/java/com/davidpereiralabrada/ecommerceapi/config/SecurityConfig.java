@@ -15,6 +15,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,26 +39,33 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
-                .csrf(csrf -> csrf.disable()) // Desactivar CSRF ya que usamos APIs REST con tokens stateless
+                .csrf(AbstractHttpConfigurer::disable) // Desactivar CSRF ya que usamos APIs REST con tokens stateless
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. RUTAS PÚBLICas (Sin token Bearer)
+                        // RUTAS PÚBLICAS (Sin token Bearer)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                        // 2. RUTA DE CAJERO Y ADMIN: Modificar stock operativo
-                        .requestMatchers(HttpMethod.PATCH, "/api/products/*/stock").hasAnyAuthority("ROLE_ADMIN", "ROLE_CAJERO")
+                        //RUTA CLIENTES
+                        .requestMatchers("/api/cart/**").hasAuthority("ROLE_CLIENTE")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/checkout").hasAuthority("ROLE_CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasAuthority("ROLE_CLIENTE")
 
-                        // 3. RUTAS EXCLUSIVAS DE ADMIN: Gestión de usuarios y mutaciones críticas de productos (crear, editar nombre/precio, borrar)
+                        // RUTA DE CAJEROS Y ADMINS
+                        .requestMatchers(HttpMethod.PATCH, "/api/products/*/stock").hasAnyAuthority("ROLE_ADMIN", "ROLE_CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/all").hasAnyAuthority("ROLE_ADMIN", "ROLE_CAJERO")
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/status").hasAnyAuthority("ROLE_ADMIN", "ROLE_CAJERO")
+
+                        // RUTAS DE ADMIN
                         .requestMatchers("/api/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasAuthority("ROLE_ADMIN")
 
-                        // 4. CUALQUIER OTRA PETICIÓN: Exige estar autenticado con un token válido
+                        // CUALQUIER OTRA PETICIÓN (Con token Bearer)
                         .anyRequest().authenticated()
                 )
                 // Añadimos el filtro JWT antes de la validación de usuario y contraseña por defecto
