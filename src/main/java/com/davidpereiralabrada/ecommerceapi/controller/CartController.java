@@ -5,14 +5,18 @@ import com.davidpereiralabrada.ecommerceapi.dto.ProductDTO;
 import com.davidpereiralabrada.ecommerceapi.model.CartItem;
 import com.davidpereiralabrada.ecommerceapi.model.User;
 import com.davidpereiralabrada.ecommerceapi.service.CartService;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
@@ -24,8 +28,8 @@ public class CartController {
     @PostMapping("/add")
     public ResponseEntity<CartItem> addToCart(
             @AuthenticationPrincipal User user,
-            @RequestParam Long productId,
-            @RequestParam Integer quantity) {
+            @RequestParam @NotNull(message = "Product ID cannot be null") Long productId,
+            @RequestParam @NotNull(message = "Quantity cannot be null") @Min(value = 1, message = "The quantity must be at least 1") Integer quantity) {
 
         CartItem cartItem = cartService.addToCart(user, productId, quantity);
         return ResponseEntity.ok(cartItem);

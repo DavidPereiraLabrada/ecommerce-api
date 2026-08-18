@@ -27,7 +27,6 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-        // Aquí se podrían añadir validaciones de negocio (ej. verificar precio mayor a 0)
         return productRepository.save(product);
     }
 

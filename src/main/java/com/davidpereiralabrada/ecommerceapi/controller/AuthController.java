@@ -1,17 +1,23 @@
 package com.davidpereiralabrada.ecommerceapi.controller;
 
+import com.davidpereiralabrada.ecommerceapi.dto.LoginRequestDTO;
+import com.davidpereiralabrada.ecommerceapi.dto.RegisterRequestDTO;
 import com.davidpereiralabrada.ecommerceapi.model.Role;
 import com.davidpereiralabrada.ecommerceapi.model.User;
 import com.davidpereiralabrada.ecommerceapi.repository.UserRepository;
 import com.davidpereiralabrada.ecommerceapi.security.JwtUtils;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
+@Validated
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -27,9 +33,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String password = body.get("password");
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO request) {
+        String username = request.username();
+        String password = request.password();
 
         User user = userRepository.findByUsername(username).orElse(null);
 
@@ -42,16 +48,16 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "token_type", "Bearer",
                 "access_token", token,
-                "expires_in", "10 minutos",
+                "expires_in", "60 minutos",
                 "role", user.getRole().name()
         ));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, String> body, Authentication authentication) {
-        String username = body.get("username");
-        String password = body.get("password");
-        String requestedRole = body.get("role"); // El rol que intentan crear (opcional)
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO request, Authentication authentication) {
+        String username = request.username();
+        String password = request.password();
+        String requestedRole = request.role(); // El rol que intentan crear (opcional)
 
         if (userRepository.findByUsername(username).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "El nombre de usuario ya existe"));
@@ -68,10 +74,10 @@ public class AuthController {
         else {
             // Obtenemos los roles del usuario que está haciendo la petición
             boolean isAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                    .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
 
             boolean isCajero = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_CAJERO"));
+                    .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_CAJERO"));
 
             // Si es un CAJERO, tiene prohibido crear cajeros u otros admins
             if (isCajero && !isAdmin) {

@@ -7,13 +7,16 @@ import com.davidpereiralabrada.ecommerceapi.dto.UserDTO;
 import com.davidpereiralabrada.ecommerceapi.model.Order;
 import com.davidpereiralabrada.ecommerceapi.model.User;
 import com.davidpereiralabrada.ecommerceapi.service.OrderService;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -44,7 +47,7 @@ public class OrderController {
     @PutMapping("/{orderId}/status")
     public ResponseEntity<OrderResponseDTO> updateStatus(
             @PathVariable Long orderId,
-            @RequestParam String status) {
+            @RequestParam @NotBlank(message = "The status cannot be blank") String status) {
         Order updatedOrder = orderService.updateOrderStatus(orderId, status);
         return ResponseEntity.ok(convertToDto(updatedOrder));
     }

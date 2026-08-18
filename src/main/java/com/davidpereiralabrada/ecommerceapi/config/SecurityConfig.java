@@ -48,6 +48,7 @@ public class SecurityConfig {
                         // RUTAS PÚBLICAS (Sin token Bearer)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
 
                         //RUTA CLIENTES
                         .requestMatchers("/api/cart/**").hasAuthority("ROLE_CLIENTE")
@@ -64,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/images/upload").hasAuthority("ROLE_ADMIN")
 
                         // CUALQUIER OTRA PETICIÓN (Con token Bearer)
                         .anyRequest().authenticated()
